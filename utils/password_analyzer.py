@@ -1,4 +1,5 @@
 import re
+import math
 import string
 from typing import Dict, Tuple
 
@@ -105,7 +106,7 @@ def calculate_entropy(password: str) -> float:
     if char_set_size == 0:
         return 0
 
-    return (len(password) * (char_set_size**0.5)) / len(password)
+    return math.log2(char_set_size)
 
 
 def check_common_patterns(password: str) -> int:
