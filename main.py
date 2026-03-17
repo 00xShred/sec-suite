@@ -83,7 +83,7 @@ def network_scanner_mode(args):
     from tools.network_scanner import NetworkScanner
 
     scanner = NetworkScanner(
-        target=args.target, ports=args.ports, max_threads=args.threads
+        target=args.target, ports=args.ports, max_threads=args.threads, timeout=args.timeout
     )
     scanner.scan()
 
@@ -201,6 +201,9 @@ def main():
     )
     network_parser.add_argument(
         "--threads", type=int, default=50, help="Number of threads"
+    )
+    network_parser.add_argument(
+        "--timeout", type=float, default=1.0, help="Socket timeout in seconds"
     )
 
     # Encoder/Decoder
