@@ -14,8 +14,6 @@ from attacks.bruteforce import BruteForceAttack
 from utils.banner import show_banner
 from utils.crypto import hash_password, identify_hash_type
 from utils.password_analyzer import analyze_password_strength
-from interactive_cli import main as interactive_main
-
 
 def setup_logging(verbose=False):
     """Setup logging configuration"""
