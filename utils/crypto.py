@@ -39,7 +39,7 @@ def hash_password(password: str, algorithm: str) -> str:
         return salt.hex() + "$" + hashed_password.hex()
     elif algorithm == "argon2":
         ph = argon2.PasswordHasher()
-        return ph.hash(password_bytes)
+        return ph.hash(password)
     else:
         raise ValueError(f"Unsupported algorithm: {algorithm}")
 
@@ -72,7 +72,7 @@ def verify_password(password: str, hash_value: str, algorithm: str) -> bool:
         elif algorithm == "argon2":
             ph = argon2.PasswordHasher()
             try:
-                return ph.verify(hash_value, password.encode("utf-8"))
+                return ph.verify(hash_value, password)
             except (argon2.exceptions.VerifyMismatchError, argon2.exceptions.VerificationError):
                 return False
         else:
