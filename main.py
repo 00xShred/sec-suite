@@ -72,9 +72,9 @@ def password_cracker_mode(args):
     if args.target_hash:
         result = attack.crack(args.target_hash)
         if result:
-            print(f"\n[SUCCESS] Password found: {result}")
+            print(f"\n[+] Password found: {result}")
         else:
-            print("\n[FAILED] Password not found")
+            print("\n[-] Password not found")
     elif args.test_password:
         hash_result = hash_password(args.test_password, hash_type)
         print(f"Hash ({hash_type}): {hash_result}")
@@ -116,6 +116,22 @@ def password_analyzer_mode(args):
                         print(f"Line {line_num}: {password} - Strength: {strength}/100")
         except FileNotFoundError:
             print(f"File not found: {args.file}")
+
+
+def generate_rainbow_mode(args):
+    """Handle rainbow table generation"""
+    import os
+
+    attack = RainbowAttack()
+    attack.generate_rainbow_table(
+        wordlist_path=args.wordlist,
+        output_path=args.output,
+        hash_type=args.hash_type,
+    )
+    if os.path.exists(args.output):
+        print(f"\n[+] Rainbow table saved to: {args.output}")
+    else:
+        print(f"\n[-] Rainbow table was not created. Check the error above.")
 
 
 def interactive_mode(args):
@@ -221,6 +237,24 @@ def main():
     analyzer_group.add_argument("-p", "--password", help="Single password to analyze")
     analyzer_group.add_argument("-f", "--file", help="File with passwords to analyze")
 
+    # Rainbow Table Generator
+    rainbow_parser = subparsers.add_parser(
+        "generate-rainbow", help="Generate a rainbow table"
+    )
+    rainbow_parser.add_argument(
+        "-w", "--wordlist", required=True, help="Path to the wordlist"
+    )
+    rainbow_parser.add_argument(
+        "-o", "--output", required=True, help="Path to save the rainbow table"
+    )
+    rainbow_parser.add_argument(
+        "-a",
+        "--hash-type",
+        default="md5",
+        help="Hash algorithm",
+        choices=["md5", "sha1", "sha256", "sha512"],
+    )
+
     args = parser.parse_args()
     setup_logging(args.verbose)
 
@@ -239,10 +273,12 @@ def main():
             password_analyzer_mode(args)
         elif args.mode == "interactive":
             interactive_mode(args)
+        elif args.mode == "generate-rainbow":
+            generate_rainbow_mode(args)
     except KeyboardInterrupt:
         print("\n[!] Operation cancelled by user")
     except Exception as e:
-        print(f"\n[ERROR] {e}")
+        print(f"\n[!] {e}")
         if args.verbose:
             import traceback
 

@@ -105,6 +105,7 @@ class InteractiveCLI:
             {"text": "Markov Chain Attack", "action": self.markov_attack},
             {"text": "Brute Force Attack", "action": self.brute_force_attack},
             {"text": "Rainbow Table Attack", "action": self.rainbow_attack},
+            {"text": "Generate Rainbow Table", "action": self.generate_rainbow_table_interactive},
         ]
 
         while True:
@@ -261,12 +262,12 @@ class InteractiveCLI:
             result = attack.crack(target_hash)
 
             if result:
-                print(f"\n🎉 SUCCESS! Password found: {result}")
+                print(f"\n[+] Password found: {result}")
             else:
-                print(f"\n❌ Password not found in wordlist")
+                print(f"\n[-] Password not found in wordlist")
 
         except Exception as e:
-            print(f"\n💥 Error: {e}")
+            print(f"\n[!] {e}")
 
         self.wait_for_enter()
 
@@ -301,12 +302,12 @@ class InteractiveCLI:
             result = attack.crack(target_hash)
 
             if result:
-                print(f"\n🎉 SUCCESS! Password found: {result}")
+                print(f"\n[+] Password found: {result}")
             else:
-                print(f"\n❌ Password not found with Markov attack")
+                print(f"\n[-] Password not found with Markov attack")
 
         except Exception as e:
-            print(f"\n💥 Error: {e}")
+            print(f"\n[!] {e}")
 
         self.wait_for_enter()
 
@@ -353,12 +354,12 @@ class InteractiveCLI:
             result = attack.crack(target_hash)
 
             if result:
-                print(f"\n🎉 SUCCESS! Password found: {result}")
+                print(f"\n[+] Password found: {result}")
             else:
-                print(f"\n❌ Password not found with brute force")
+                print(f"\n[-] Password not found with brute force")
 
         except Exception as e:
-            print(f"\n💥 Error: {e}")
+            print(f"\n[!] {e}")
 
         self.wait_for_enter()
 
@@ -386,12 +387,50 @@ class InteractiveCLI:
             result = attack.crack(target_hash)
 
             if result:
-                print(f"\n🎉 SUCCESS! Password found: {result}")
+                print(f"\n[+] Password found: {result}")
             else:
-                print(f"\n❌ Hash not found in rainbow table")
+                print(f"\n[-] Hash not found in rainbow table")
 
         except Exception as e:
-            print(f"\n💥 Error: {e}")
+            print(f"\n[!] {e}")
+
+        self.wait_for_enter()
+
+    def generate_rainbow_table_interactive(self):
+        """Interactive rainbow table generation"""
+        self.clear_screen()
+        self.print_header("Generate Rainbow Table")
+
+        wordlist = input("Enter wordlist path: ").strip()
+        if not wordlist:
+            print("Wordlist path cannot be empty!")
+            self.wait_for_enter()
+            return
+
+        output_path = input("Enter output path for rainbow table [rainbow.json]: ").strip() or "rainbow.json"
+        hash_type = input("Enter hash type (md5, sha1, sha256, sha512) [md5]: ").strip() or "md5"
+
+        valid_hash_types = ["md5", "sha1", "sha256", "sha512"]
+        if hash_type not in valid_hash_types:
+            print(f"Invalid hash type! Choose from: {', '.join(valid_hash_types)}")
+            self.wait_for_enter()
+            return
+
+        print(f"\nStarting rainbow table generation...")
+        print(f"Wordlist: {wordlist}")
+        print(f"Output: {output_path}")
+        print(f"Type: {hash_type}")
+        print("-" * 50)
+
+        try:
+            attack = RainbowAttack()
+            attack.generate_rainbow_table(wordlist, output_path, hash_type)
+            if os.path.exists(output_path):
+                print(f"\n[+] Rainbow table generated at {output_path}")
+            else:
+                print(f"\n[!] Failed to generate rainbow table. Check the error above.")
+        except Exception as e:
+            print(f"\n[!] {e}")
 
         self.wait_for_enter()
 
@@ -412,7 +451,7 @@ class InteractiveCLI:
         try:
             analyze_password_strength(password)
         except Exception as e:
-            print(f"\n💥 Error: {e}")
+            print(f"\n[!] {e}")
 
         self.wait_for_enter()
 
@@ -440,7 +479,7 @@ class InteractiveCLI:
             hashed = hash_password(password, algorithm)
             print(f"Hash ({algorithm.upper()}): {hashed}")
         except Exception as e:
-            print(f"\n💥 Error: {e}")
+            print(f"\n[!] {e}")
 
         self.wait_for_enter()
 
@@ -461,12 +500,12 @@ class InteractiveCLI:
         try:
             hash_type = identify_hash_type(hash_input)
             if hash_type:
-                print(f"🔍 Identified hash type: {hash_type}")
+                print(f"[*] Identified hash type: {hash_type}")
             else:
-                print("❌ Could not identify hash type")
+                print("[-] Could not identify hash type")
                 print("This might be an unsupported or custom hash format")
         except Exception as e:
-            print(f"\n💥 Error: {e}")
+            print(f"\n[!] {e}")
 
         self.wait_for_enter()
 
@@ -495,7 +534,7 @@ class InteractiveCLI:
             scanner = NetworkScanner(target, ports, int(threads), float(timeout))
             scanner.scan()
         except Exception as e:
-            print(f"\n💥 Error: {e}")
+            print(f"\n[!] {e}")
 
         self.wait_for_enter()
 
@@ -533,7 +572,7 @@ class InteractiveCLI:
                 print(f"{i:2d}. {pwd} (Score: {score}/100)")
                 print("-" * 20)
         except Exception as e:
-            print(f"\n💥 Error: {e}")
+            print(f"\n[!] {e}")
 
         self.wait_for_enter()
 
@@ -561,7 +600,7 @@ class InteractiveCLI:
             result = encode_decode(data, op_type, encoding_type)
             print(f"\nResult: {result}")
         except Exception as e:
-            print(f"\n💥 Error: {e}")
+            print(f"\n[!] {e}")
 
         self.wait_for_enter()
 
@@ -574,7 +613,7 @@ def main():
     except KeyboardInterrupt:
         print("\n\nThank you for using SEC-SUITE! Goodbye!")
     except Exception as e:
-        print(f"\n💥 Unexpected error: {e}")
+        print(f"\n[!] Unexpected error: {e}")
         print("Please report this issue on GitHub.")
 
 
