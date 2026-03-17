@@ -69,10 +69,4 @@ class RainbowAttack:
             print("No rainbow table loaded. Use --rainbow-table to specify a file.")
             return None
 
-        result = self.rainbow_table.get(target_hash)
-        if result:
-            print(f"Found in rainbow table: {result}")
-        else:
-            print("Hash not found in rainbow table")
-
-        return result
+        return self.rainbow_table.get(target_hash)
