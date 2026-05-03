@@ -101,17 +101,17 @@ def encoder_mode(args):
 def password_analyzer_mode(args):
     """Handle password strength analysis"""
     if args.password:
-        strength = analyze_password_strength(args.password)
+        result = analyze_password_strength(args.password)
         print(f"Password: {args.password}")
-        print(f"Strength: {strength}/100")
+        print(f"Strength: {result['score']}/100")
     elif args.file:
         try:
             with open(args.file, "r", encoding="utf-8", errors="ignore") as f:
                 for line_num, line in enumerate(f, 1):
                     password = line.strip()
                     if password:
-                        strength = analyze_password_strength(password)
-                        print(f"Line {line_num}: {password} - Strength: {strength}/100")
+                        result = analyze_password_strength(password)
+                        print(f"Line {line_num}: {password} - Strength: {result['score']}/100")
         except FileNotFoundError:
             print(f"File not found: {args.file}")
 

@@ -568,8 +568,8 @@ class InteractiveCLI:
             print("-" * 50)
             for i, pwd in enumerate(passwords, 1):
                 # Using strength analyzer for each generated password
-                score = analyze_password_strength(pwd)
-                print(f"{i:2d}. {pwd} (Score: {score}/100)")
+                result = analyze_password_strength(pwd)
+                print(f"{i:2d}. {pwd} (Score: {result['score']}/100)")
                 print("-" * 20)
         except Exception as e:
             print(f"\n[!] {e}")

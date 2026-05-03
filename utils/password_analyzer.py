@@ -4,18 +4,21 @@ import string
 from typing import Dict, Tuple
 
 
-def analyze_password_strength(password: str) -> int:
-    """
-    Analyze password strength and return a score from 0-100
-    """
+def analyze_password_strength(password: str) -> dict:
+    """Analyze password strength and return a result dict with score 0-100."""
     if not password:
-        return 0
+        return {"score": 0, "strength": "VERY WEAK", "feedback": [], "details": {}}
 
     score = 0
     feedback = []
 
-    # Length check (max 25 points)
     length = len(password)
+    has_upper = any(c.isupper() for c in password)
+    has_lower = any(c.islower() for c in password)
+    has_digit = any(c.isdigit() for c in password)
+    has_special = any(c in string.punctuation for c in password)
+
+    # Length (max 25 pts)
     if length >= 12:
         score += 25
         feedback.append("✓ Good length (12+ characters)")
@@ -26,13 +29,7 @@ def analyze_password_strength(password: str) -> int:
         score += 5
         feedback.append("✗ Too short (less than 8 characters)")
 
-    # Character variety checks
-    has_upper = any(c.isupper() for c in password)
-    has_lower = any(c.islower() for c in password)
-    has_digit = any(c.isdigit() for c in password)
-    has_special = any(c in string.punctuation for c in password)
-
-    # Character variety (max 40 points)
+    # Variety (max 40 pts)
     char_variety = sum([has_upper, has_lower, has_digit, has_special])
     if char_variety == 4:
         score += 40
@@ -47,7 +44,7 @@ def analyze_password_strength(password: str) -> int:
         score += 5
         feedback.append("✗ Poor character variety (only 1 character type)")
 
-    # Entropy calculation (max 20 points)
+    # Entropy (max 20 pts)
     entropy = calculate_entropy(password)
     if entropy > 4.0:
         score += 20
@@ -59,35 +56,47 @@ def analyze_password_strength(password: str) -> int:
         score += 5
         feedback.append(f"✗ Low entropy ({entropy:.2f} bits per character)")
 
-    # Common pattern penalties (max -15 points penalty)
+    # Penalty
     penalty = check_common_patterns(password)
     score -= penalty
-
     if penalty > 0:
         feedback.append(f"✗ Contains common patterns (-{penalty} points)")
 
-    # Ensure score is within bounds
     final_score = max(0, min(100, score))
 
-    # Print feedback
+    if final_score >= 80:
+        strength = "VERY STRONG"
+    elif final_score >= 60:
+        strength = "STRONG"
+    elif final_score >= 40:
+        strength = "MODERATE"
+    elif final_score >= 20:
+        strength = "WEAK"
+    else:
+        strength = "VERY WEAK"
+
+    # Print analysis
     print(f"\nPassword Analysis for: {password}")
     print("=" * 50)
     for item in feedback:
         print(item)
     print(f"\nFinal Strength Score: {final_score}/100")
+    print(f"Strength: {strength}")
 
-    if final_score >= 80:
-        print("Strength: VERY STRONG")
-    elif final_score >= 60:
-        print("Strength: STRONG")
-    elif final_score >= 40:
-        print("Strength: MODERATE")
-    elif final_score >= 20:
-        print("Strength: WEAK")
-    else:
-        print("Strength: VERY WEAK")
-
-    return final_score
+    return {
+        "score": final_score,
+        "strength": strength,
+        "feedback": feedback,
+        "details": {
+            "length": length,
+            "has_upper": has_upper,
+            "has_lower": has_lower,
+            "has_digit": has_digit,
+            "has_special": has_special,
+            "entropy_per_char": round(entropy, 2),
+            "pattern_penalty": penalty,
+        },
+    }
 
 
 def calculate_entropy(password: str) -> float:
