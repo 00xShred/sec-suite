@@ -1,9 +1,5 @@
 # SEC-SUITE
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Poetry](https://img.shields.io/badge/package-poetry-blueviolet)](https://python-poetry.org/)
-
 A security toolkit for password auditing and network reconnaissance. Provides both an interactive CLI and direct terminal commands.
 
 ## Features
