@@ -10,11 +10,11 @@ A security toolkit for password auditing and network reconnaissance. Provides bo
 
 | Category | Capabilities |
 | :--- | :--- |
-| **Password Attacks** | Markov Chain (probabilistic), Brute Force (configurable), Dictionary (multi-process), Rainbow Table |
-| **Performance** | Multi-processing across all attack modules, optimized password batching |
+| **Password Attacks** | Markov Chain (probabilistic), Brute Force (configurable), Dictionary (multi-process), **Rule-Based (transformations)**, Rainbow Table |
+| **Performance** | Multi-processing across all attack modules, optimized password batching with **tqdm progress bars** |
 | **Hash Support** | Argon2, Bcrypt, Scrypt, SHA-256/512, MD5, and more with auto-detection |
-| **Network** | SYN Port Scanner (requires root), service discovery, CIDR support |
-| **Password Generation** | Markov model-trained generator for realistic password lists |
+| **Network** | **SYN Stealth Scanner** (requires root) & **TCP Connect Scanner** (non-root), banner grabbing, CIDR support |
+| **Output** | Support for **JSON** and **CSV** export for all primary operations |
 | **Utilities** | Encoding/decoding (Base64, Hex, URL, HTML), password strength analyzer |
 
 ## Setup
@@ -44,26 +44,33 @@ Ensure you have run `poetry shell` first.
 # Dictionary attack
 python main.py crack -t <HASH> -a sha256 -m dictionary
 
+# Rule-Based attack (leet speak, numbers, etc.)
+python main.py crack -t <HASH> -a md5 -m rules --rule-set all
+
+# Multi-hash mode (load from file)
+python main.py crack --target-file hashes.txt -m dictionary -w data/rockyou.txt
+
+# Save results to file (JSON or CSV)
+python main.py crack -t <HASH> -m dictionary --output results.csv --format csv
+
 # Markov chain attack
 python main.py crack -t <HASH> -a md5 -m markov --max-passwords 50000
 
 # Brute force (lowercase + digits, length 4-6)
 python main.py crack -t <HASH> -a sha1 -m bruteforce --charset "ld" --min-length 4 --max-length 6
-
-# Rainbow table lookup
-python main.py crack -t <HASH> -m rainbow --rainbow-table my_table.json
 ```
 
 ### Network Scanning
 
-Requires root privileges (SYN scan uses raw sockets).
-
 ```bash
-# Scan a single host
-sudo python main.py scan -t 192.168.1.5 -p 1-1000 --threads 50
+# Stealth SYN scan (Requires root/sudo)
+sudo python main.py scan -t 192.168.1.5 -p 1-1000 --scan-type syn
 
-# Scan a subnet
-sudo python main.py scan -t 192.168.1.0/24 -p 22,80,443
+# TCP Connect scan (No root needed, grabs service banners)
+python main.py scan -t 192.168.1.0/24 -p 22,80,443 --scan-type connect
+
+# Export scan results
+python main.py scan -t 192.168.1.1 -p 1-100 --scan-type connect --output scan.json
 ```
 
 ### Utilities

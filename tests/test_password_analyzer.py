@@ -18,12 +18,12 @@ def test_score_is_int_in_range():
 
 def test_strength_label_very_weak():
     result = analyze_password_strength("a")
-    assert result["strength"] in ("VERY WEAK", "WEAK")
+    assert result["strength"] == "WEAK"
 
 
 def test_strength_label_very_strong():
     result = analyze_password_strength("xK9!mP2@qZ#4nL5$")
-    assert result["strength"] in ("STRONG", "VERY STRONG")
+    assert result["strength"] == "VERY STRONG"
 
 
 def test_empty_password_returns_zero():

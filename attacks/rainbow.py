@@ -39,21 +39,18 @@ class RainbowAttack:
         self, wordlist_path: str, output_path: str, hash_type: str = "md5"
     ):
         """Generate a rainbow table from a wordlist"""
+        from tqdm import tqdm
         print(f"Generating rainbow table for {hash_type}...")
         rainbow_table = {}
 
         try:
             with open(wordlist_path, "r", encoding="utf-8", errors="ignore") as f:
-                for line_num, line in enumerate(f, 1):
+                for line in tqdm(f, desc=f"Hashing ({hash_type})", unit="line"):
                     password = line.strip()
                     if password:
                         hash_val = hash_password(password, hash_type)
                         rainbow_table[hash_val] = password
 
-                    if line_num % 10000 == 0:
-                        print(f"Processed {line_num} passwords...")
-
-            # Save as json for safer loading
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(rainbow_table, f)
 

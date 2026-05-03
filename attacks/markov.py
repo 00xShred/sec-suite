@@ -16,35 +16,32 @@ class MarkovModel:
         self.model: Dict[str, Dict[str, int]] = {}
         self.start_states: Dict[str, int] = {}
 
-    def train(self, passwords: Iterator[str], max_training_samples: int = 100000):
+    def train(self, passwords, max_training_samples: int = 100000):
         """Train the Markov model on an iterator of passwords with a sample limit"""
+        from tqdm import tqdm
         print(f"Training Markov model (max samples: {max_training_samples})...")
 
         count = 0
-        for password in passwords:
-            password = password.strip()
-            if not password or len(password) < self.order:
-                continue
+        with tqdm(total=max_training_samples, desc="Training", unit="pwd") as pbar:
+            for password in passwords:
+                password = password.strip()
+                if not password or len(password) < self.order:
+                    continue
 
-            # Add start state
-            start = password[: self.order]
-            self.start_states[start] = self.start_states.get(start, 0) + 1
+                start = password[: self.order]
+                self.start_states[start] = self.start_states.get(start, 0) + 1
 
-            # Build transitions
-            for i in range(len(password) - self.order):
-                state = password[i : i + self.order]
-                next_char = password[i + self.order]
+                for i in range(len(password) - self.order):
+                    state = password[i : i + self.order]
+                    next_char = password[i + self.order]
+                    if state not in self.model:
+                        self.model[state] = {}
+                    self.model[state][next_char] = self.model[state].get(next_char, 0) + 1
 
-                if state not in self.model:
-                    self.model[state] = {}
-                self.model[state][next_char] = self.model[state].get(next_char, 0) + 1
-            
-            count += 1
-            if count % 50000 == 0:
-                print(f"Processed {count} passwords for training...")
-            
-            if count >= max_training_samples:
-                break
+                count += 1
+                pbar.update(1)
+                if count >= max_training_samples:
+                    break
 
         print(
             f"Model trained with {len(self.model)} states and {len(self.start_states)} start states"

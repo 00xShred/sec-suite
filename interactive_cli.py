@@ -6,7 +6,6 @@ A user-friendly menu-driven interface for the security toolkit
 
 import os
 import sys
-import time
 from typing import List, Dict, Any
 
 # Add the current directory to path so imports work
@@ -105,6 +104,7 @@ class InteractiveCLI:
             {"text": "Markov Chain Attack", "action": self.markov_attack},
             {"text": "Brute Force Attack", "action": self.brute_force_attack},
             {"text": "Rainbow Table Attack", "action": self.rainbow_attack},
+            {"text": "Rule-Based Attack", "action": self.rule_based_attack},
             {"text": "Generate Rainbow Table", "action": self.generate_rainbow_table_interactive},
         ]
 
@@ -396,6 +396,55 @@ class InteractiveCLI:
 
         self.wait_for_enter()
 
+    def rule_based_attack(self):
+        """Interactive rule-based attack"""
+        self.clear_screen()
+        self.print_header("Rule-Based Attack")
+
+        target_hash = input("Enter target hash: ").strip()
+        if not target_hash:
+            print("Hash cannot be empty!")
+            self.wait_for_enter()
+            return
+
+        hash_type = identify_hash_type(target_hash)
+        if hash_type:
+            print(f"Auto-detected hash type: {hash_type}")
+            use_auto = input("Use auto-detected type? (y/n): ").lower().strip()
+            if use_auto != "y":
+                hash_type = None
+        if not hash_type:
+            hash_type = input("Enter hash type (md5, sha1, sha256, sha512, bcrypt): ").strip()
+
+        wordlist = input("Enter wordlist path [data/rockyou.txt]: ").strip() or "data/rockyou.txt"
+
+        print("\nAvailable rule sets:")
+        print("  basic   — case transforms + reverse")
+        print("  numbers — append/prepend digits, append year")
+        print("  leet    — leet-speak substitutions")
+        print("  special — append special characters")
+        print("  all     — all of the above (default)")
+        rule_set = input("Enter rule set [all]: ").strip() or "all"
+        if rule_set not in ("basic", "numbers", "leet", "special", "all"):
+            print(f"Invalid rule set '{rule_set}', using 'all'.")
+            rule_set = "all"
+
+        threads = input("Enter number of threads [4]: ").strip() or "4"
+
+        print(f"\nStarting rule-based attack...")
+        try:
+            from attacks.rules import RuleBasedAttack
+            attack = RuleBasedAttack(wordlist, hash_type, rule_set=rule_set, max_processes=int(threads))
+            result = attack.crack(target_hash)
+            if result:
+                print(f"\n[+] Password found: {result}")
+            else:
+                print(f"\n[-] Password not found with rule-based attack")
+        except Exception as e:
+            print(f"\n[!] {e}")
+
+        self.wait_for_enter()
+
     def generate_rainbow_table_interactive(self):
         """Interactive rainbow table generation"""
         self.clear_screen()
@@ -449,7 +498,8 @@ class InteractiveCLI:
         print("-" * 50)
 
         try:
-            analyze_password_strength(password)
+            result = analyze_password_strength(password)
+            print(f"\nStrength: {result['strength']} ({result['score']}/100)")
         except Exception as e:
             print(f"\n[!] {e}")
 
@@ -524,14 +574,17 @@ class InteractiveCLI:
         threads = input("Enter number of threads [50]: ").strip() or "50"
         timeout = input("Enter timeout in seconds [1.0]: ").strip() or "1.0"
 
-        print(f"\nStarting network scan on {target}...")
-        print(f"Ports: {ports}")
-        print(f"Threads: {threads}")
-        print(f"Timeout: {timeout}s")
-        print("-" * 50)
+        print("\nScan types:")
+        print("  syn     — stealth SYN scan (requires root/sudo)")
+        print("  connect — TCP connect scan (no root needed, grabs banners)")
+        scan_type = input("Enter scan type [connect]: ").strip() or "connect"
+        if scan_type not in ("syn", "connect"):
+            print("Invalid scan type. Using 'connect'.")
+            scan_type = "connect"
 
+        print(f"\nStarting {scan_type} scan on {target}...")
         try:
-            scanner = NetworkScanner(target, ports, int(threads), float(timeout))
+            scanner = NetworkScanner(target, ports, int(threads), float(timeout), scan_type=scan_type)
             scanner.scan()
         except Exception as e:
             print(f"\n[!] {e}")

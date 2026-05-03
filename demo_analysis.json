@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-05-03T14:42:14.643337+00:00",
+  "password": "Hunter2!rocks",
+  "score": 85,
+  "strength": "VERY STRONG",
+  "feedback": [
+    "\u2713 Good length (12+ characters)",
+    "\u2713 Excellent character variety (upper, lower, digits, special)",
+    "\u2713 High entropy (6.55 bits per character)"
+  ],
+  "details": {
+    "length": 13,
+    "has_upper": true,
+    "has_lower": true,
+    "has_digit": true,
+    "has_special": true,
+    "entropy_per_char": 6.55,
+    "pattern_penalty": 0
+  }
+}

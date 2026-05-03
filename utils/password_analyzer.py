@@ -75,14 +75,6 @@ def analyze_password_strength(password: str) -> dict:
     else:
         strength = "VERY WEAK"
 
-    # Print analysis
-    print(f"\nPassword Analysis for: {password}")
-    print("=" * 50)
-    for item in feedback:
-        print(item)
-    print(f"\nFinal Strength Score: {final_score}/100")
-    print(f"Strength: {strength}")
-
     return {
         "score": final_score,
         "strength": strength,
