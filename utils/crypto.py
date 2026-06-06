@@ -82,16 +82,23 @@ def verify_password(password: str, hash_value: str, algorithm: str) -> bool:
         return False
 
 
+# Known length-based hash ambiguities:
+# - 32 hex chars: MD5 assumed; could also be MD4
+# - 40 hex chars: SHA-1 assumed; could also be RIPEMD-160
+# - 64 hex chars: SHA-256 assumed; could also be SHA-3-256
 def identify_hash_type(hash_string: str) -> Optional[str]:
     """Attempt to identify the hash type"""
     hash_string = hash_string.strip()
 
     # Length-based identification
     if len(hash_string) == 32 and re.match(r"^[a-f0-9]{32}$", hash_string):
+        # Ambiguous: MD5 assumed; could also be MD4.
         return "md5"
     elif len(hash_string) == 40 and re.match(r"^[a-f0-9]{40}$", hash_string):
+        # Ambiguous: SHA-1 assumed; could also be RIPEMD-160.
         return "sha1"
     elif len(hash_string) == 64 and re.match(r"^[a-f0-9]{64}$", hash_string):
+        # Ambiguous: SHA-256 assumed; could also be SHA-3-256.
         return "sha256"
     elif len(hash_string) == 128 and re.match(r"^[a-f0-9]{128}$", hash_string):
         return "sha512"

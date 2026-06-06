@@ -18,7 +18,7 @@ def test_score_is_int_in_range():
 
 def test_strength_label_very_weak():
     result = analyze_password_strength("a")
-    assert result["strength"] == "WEAK"
+    assert result["strength"] == "VERY WEAK"
 
 
 def test_strength_label_very_strong():
@@ -40,6 +40,6 @@ def test_details_has_expected_keys():
 
 
 def test_calculate_entropy_all_lower():
-    # log2(26) ≈ 4.7
+    # 6 * log2(26) ≈ 28.2
     e = calculate_entropy("abcdef")
-    assert abs(e - 4.7) < 0.1
+    assert abs(e - 28.2) < 0.1

@@ -7,7 +7,13 @@ from typing import Dict, Tuple
 def analyze_password_strength(password: str) -> dict:
     """Analyze password strength and return a result dict with score 0-100."""
     if not password:
-        return {"score": 0, "strength": "VERY WEAK", "feedback": [], "details": {}}
+        return {
+            "score": 0,
+            "strength": "VERY WEAK",
+            "feedback": [],
+            "recommendations": get_password_recommendations(password),
+            "details": {},
+        }
 
     score = 0
     feedback = []
@@ -21,46 +27,46 @@ def analyze_password_strength(password: str) -> dict:
     # Length (max 25 pts)
     if length >= 12:
         score += 25
-        feedback.append("✓ Good length (12+ characters)")
+        feedback.append("[+] Good length (12+ characters)")
     elif length >= 8:
         score += 15
-        feedback.append("✓ Acceptable length (8-11 characters)")
+        feedback.append("[+] Acceptable length (8-11 characters)")
     else:
         score += 5
-        feedback.append("✗ Too short (less than 8 characters)")
+        feedback.append("[-] Too short (less than 8 characters)")
 
     # Variety (max 40 pts)
     char_variety = sum([has_upper, has_lower, has_digit, has_special])
     if char_variety == 4:
         score += 40
-        feedback.append("✓ Excellent character variety (upper, lower, digits, special)")
+        feedback.append("[+] Excellent character variety (upper, lower, digits, special)")
     elif char_variety == 3:
         score += 25
-        feedback.append("✓ Good character variety (3 character types)")
+        feedback.append("[+] Good character variety (3 character types)")
     elif char_variety == 2:
         score += 15
-        feedback.append("✓ Basic character variety (2 character types)")
+        feedback.append("[+] Basic character variety (2 character types)")
     else:
         score += 5
-        feedback.append("✗ Poor character variety (only 1 character type)")
+        feedback.append("[-] Poor character variety (only 1 character type)")
 
     # Entropy (max 20 pts)
     entropy = calculate_entropy(password)
-    if entropy > 4.0:
+    if entropy > 60.0:
         score += 20
-        feedback.append(f"✓ High entropy ({entropy:.2f} bits per character)")
-    elif entropy > 3.0:
+        feedback.append(f"[+] High entropy ({entropy:.2f} bits)")
+    elif entropy > 40.0:
         score += 15
-        feedback.append(f"✓ Moderate entropy ({entropy:.2f} bits per character)")
+        feedback.append(f"[+] Moderate entropy ({entropy:.2f} bits)")
     else:
         score += 5
-        feedback.append(f"✗ Low entropy ({entropy:.2f} bits per character)")
+        feedback.append(f"[-] Low entropy ({entropy:.2f} bits)")
 
     # Penalty
     penalty = check_common_patterns(password)
     score -= penalty
     if penalty > 0:
-        feedback.append(f"✗ Contains common patterns (-{penalty} points)")
+        feedback.append(f"[-] Contains common patterns (-{penalty} points)")
 
     final_score = max(0, min(100, score))
 
@@ -79,6 +85,7 @@ def analyze_password_strength(password: str) -> dict:
         "score": final_score,
         "strength": strength,
         "feedback": feedback,
+        "recommendations": get_password_recommendations(password),
         "details": {
             "length": length,
             "has_upper": has_upper,
@@ -92,7 +99,7 @@ def analyze_password_strength(password: str) -> dict:
 
 
 def calculate_entropy(password: str) -> float:
-    """Calculate password entropy in bits per character"""
+    """Calculate total password entropy in bits."""
     char_set_size = 0
 
     if any(c.islower() for c in password):
@@ -107,7 +114,7 @@ def calculate_entropy(password: str) -> float:
     if char_set_size == 0:
         return 0
 
-    return math.log2(char_set_size)
+    return len(password) * math.log2(char_set_size)
 
 
 def check_common_patterns(password: str) -> int:

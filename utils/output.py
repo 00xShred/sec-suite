@@ -27,13 +27,16 @@ def _write_csv(data: dict, path: str) -> None:
     dtype = data.get("_type")
     if dtype == "scan":
         rows = format_scan_csv(data.get("open_ports", []))
-        fieldnames = ["host", "port", "banner"]
+        fieldnames = ["host", "port", "service", "banner"]
     elif dtype == "crack":
         rows = format_crack_csv(data.get("results", []))
         fieldnames = ["hash", "hash_type", "password", "cracked"]
+    elif dtype == "analyze":
+        rows = format_analyze_csv(data)
+        fieldnames = ["password", "score", "strength"]
     else:
         raise ValueError(
-            f"CSV output requires '_type' to be 'scan' or 'crack', got: {dtype!r}"
+            f"CSV output requires '_type' to be 'scan', 'crack', or 'analyze', got: {dtype!r}"
         )
 
     with open(path, "w", newline="", encoding="utf-8") as f:
@@ -43,7 +46,15 @@ def _write_csv(data: dict, path: str) -> None:
 
 
 def format_scan_csv(ports: list) -> list:
-    return [{"host": p.get("host", ""), "port": p["port"], "banner": p.get("banner") or ""} for p in ports]
+    return [
+        {
+            "host": p.get("host", ""),
+            "port": p["port"],
+            "service": p.get("service") or "",
+            "banner": p.get("banner") or "",
+        }
+        for p in ports
+    ]
 
 
 def format_crack_csv(results: list) -> list:
@@ -55,4 +66,18 @@ def format_crack_csv(results: list) -> list:
             "cracked": r["cracked"],
         }
         for r in results
+    ]
+
+
+def format_analyze_csv(data: dict) -> list:
+    results = data.get("results")
+    if results is None and data.get("password") is not None:
+        results = [data]
+    return [
+        {
+            "password": r["password"],
+            "score": r["score"],
+            "strength": r["strength"],
+        }
+        for r in (results or [])
     ]
