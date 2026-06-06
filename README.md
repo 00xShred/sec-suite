@@ -4,14 +4,14 @@ A security toolkit for password auditing and network reconnaissance. Provides bo
 
 ## Features
 
-| Category | Capabilities |
-| :--- | :--- |
+| Category             | Capabilities                                                                                                                          |
+| :------------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
 | **Password Attacks** | Markov Chain (probabilistic), Brute Force (configurable), Dictionary (multi-process), **Rule-Based (transformations)**, Rainbow Table |
-| **Performance** | Multi-processing across all attack modules, optimized password batching with **tqdm progress bars** |
-| **Hash Support** | Argon2, Bcrypt, Scrypt, SHA-256/512, MD5, and more with auto-detection |
-| **Network** | **SYN Stealth Scanner** (requires root) & **TCP Connect Scanner** (non-root), banner grabbing, CIDR support |
-| **Output** | Support for **JSON** and **CSV** export for all primary operations |
-| **Utilities** | Encoding/decoding (Base64, Hex, URL, HTML), password strength analyzer |
+| **Performance**      | Multi-processing across all attack modules, optimized password batching with **tqdm progress bars**                                   |
+| **Hash Support**     | Argon2, Bcrypt, Scrypt, SHA-256/512, MD5, and more with auto-detection                                                                |
+| **Network**          | **SYN Stealth Scanner** (requires root) & **TCP Connect Scanner** (non-root), banner grabbing, service name identification, CIDR support |
+| **Output**           | Support for **JSON** and **CSV** export for all primary operations                                                                    |
+| **Utilities**        | Encoding/decoding (Base64, Hex, URL, HTML), password strength analyzer                                                                |
 
 ## Setup
 
@@ -54,6 +54,9 @@ python main.py crack -t <HASH> -a md5 -m markov --max-passwords 50000
 
 # Brute force (lowercase + digits, length 4-6)
 python main.py crack -t <HASH> -a sha1 -m bruteforce --charset "ld" --min-length 4 --max-length 6
+
+# Estimate candidate count without cracking
+python main.py crack -t <HASH> -m bruteforce --charset "ld" --min-length 4 --max-length 6 --count
 ```
 
 ### Network Scanning
@@ -67,12 +70,17 @@ python main.py scan -t 192.168.1.0/24 -p 22,80,443 --scan-type connect
 
 # Export scan results
 python main.py scan -t 192.168.1.1 -p 1-100 --scan-type connect --output scan.json
+python main.py scan -t 192.168.1.1 -p 1-100 --scan-type connect --output scan.csv --format csv
 ```
 
 ### Utilities
 
 ```bash
+# Single password — shows score, entropy, recommendations
 python main.py analyze -p "Sup3rS3cr3t!"
+
+# Bulk analysis from file
+python main.py analyze -f passwords.txt --output report.csv --format csv
 python main.py encode -d "hello world" -e base64 -o encode
 python main.py encode -d "hello%20world" -e url -o decode
 ```
@@ -93,10 +101,3 @@ Custom wordlists: place in `data/` and use `-w data/my_custom_list.txt`.
 ## Legal
 
 For educational purposes, authorized security research, and personal auditing only. Do not use against systems you don't own or lack explicit permission to test.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/my-feature`)
-3. Commit and push your changes
-4. Open a Pull Request
