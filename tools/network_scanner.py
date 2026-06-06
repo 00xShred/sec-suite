@@ -5,6 +5,13 @@ import queue
 from typing import List, Dict, Optional
 from tqdm import tqdm
 
+_SERVICE_NAMES = {
+    21: "FTP", 22: "SSH", 23: "Telnet", 25: "SMTP", 53: "DNS",
+    80: "HTTP", 110: "POP3", 143: "IMAP", 443: "HTTPS", 445: "SMB",
+    3306: "MySQL", 3389: "RDP", 5432: "PostgreSQL", 5900: "VNC",
+    6379: "Redis", 8080: "HTTP-Alt", 8443: "HTTPS-Alt", 27017: "MongoDB",
+}
+
 _SCAPY_AVAILABLE = False
 try:
     from scapy.all import IP, TCP, sr1, send, conf
@@ -43,11 +50,31 @@ class NetworkScanner:
     def _parse_ports(self, port_spec: str) -> List[int]:
         ports = []
         for part in port_spec.split(","):
+            part = part.strip()
             if "-" in part:
+                if part.count("-") != 1:
+                    raise ValueError(f"Invalid port range '{part}': expected START-END")
                 start, end = part.split("-")
-                ports.extend(range(int(start), int(end) + 1))
+                if not start or not end:
+                    raise ValueError(f"Invalid port range '{part}': start and end ports are required")
+                try:
+                    start_port = int(start)
+                    end_port = int(end)
+                except ValueError as exc:
+                    raise ValueError(f"Invalid port range '{part}': ports must be numbers") from exc
+                if not (1 <= start_port <= 65535 and 1 <= end_port <= 65535):
+                    raise ValueError(f"Invalid port range '{part}': ports must be between 1 and 65535")
+                if start_port > end_port:
+                    raise ValueError(f"Invalid port range '{part}': start port must be less than or equal to end port")
+                ports.extend(range(start_port, end_port + 1))
             else:
-                ports.append(int(part))
+                try:
+                    port = int(part)
+                except ValueError as exc:
+                    raise ValueError(f"Invalid port '{part}': port must be a number") from exc
+                if not 1 <= port <= 65535:
+                    raise ValueError(f"Invalid port '{part}': ports must be between 1 and 65535")
+                ports.append(port)
         return sorted(set(ports))
 
     def _get_hosts(self) -> List[str]:
@@ -98,9 +125,12 @@ class NetworkScanner:
                     is_open = self._syn_scan_port(host, port)
 
                 if is_open:
+                    service = _SERVICE_NAMES.get(port)
                     with self.lock:
-                        self.open_ports.append({"port": port, "banner": banner})
+                        self.open_ports.append({"port": port, "banner": banner, "service": service})
                     msg = f"Port {port}: OPEN"
+                    if service:
+                        msg += f" ({service})"
                     if banner:
                         msg += f" | {banner[:80]}"
                     tqdm.write(msg)
@@ -169,6 +199,8 @@ class NetworkScanner:
             if open_sorted:
                 for entry in open_sorted:
                     line = f"  {entry['port']}/tcp OPEN"
+                    if entry.get("service"):
+                        line += f"  {entry['service']}"
                     if entry.get("banner"):
                         line += f"  {entry['banner'][:80]}"
                     print(line)

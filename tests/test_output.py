@@ -2,7 +2,7 @@ import json
 import csv
 import os
 import tempfile
-from utils.output import write_output, format_scan_csv, format_crack_csv
+from utils.output import write_output, format_scan_csv, format_crack_csv, format_analyze_csv
 
 
 def test_write_json_creates_file():
@@ -42,8 +42,8 @@ def test_write_csv_scan_creates_file():
     data = {
         "_type": "scan",
         "open_ports": [
-            {"host": "127.0.0.1", "port": 22, "banner": "SSH-2.0"},
-            {"host": "127.0.0.1", "port": 80, "banner": ""},
+            {"host": "127.0.0.1", "port": 22, "service": "SSH", "banner": "SSH-2.0"},
+            {"host": "127.0.0.1", "port": 80, "service": "HTTP", "banner": ""},
         ],
     }
     with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="w") as f:
@@ -54,20 +54,49 @@ def test_write_csv_scan_creates_file():
             rows = list(csv.DictReader(f))
         assert int(rows[0]["port"]) == 22
         assert rows[0]["host"] == "127.0.0.1"
+        assert rows[0]["service"] == "SSH"
     finally:
         os.unlink(path)
 
 
 def test_format_scan_csv_returns_rows():
-    ports = [{"host": "10.0.0.1", "port": 443, "banner": "TLS"}, {"host": "10.0.0.1", "port": 8080, "banner": ""}]
+    ports = [
+        {"host": "10.0.0.1", "port": 443, "service": "HTTPS", "banner": "TLS"},
+        {"host": "10.0.0.1", "port": 8080, "service": "HTTP-Alt", "banner": ""},
+    ]
     rows = format_scan_csv(ports)
-    assert rows[0] == {"host": "10.0.0.1", "port": 443, "banner": "TLS"}
+    assert rows[0] == {"host": "10.0.0.1", "port": 443, "service": "HTTPS", "banner": "TLS"}
 
 
 def test_format_crack_csv_none_password():
     results = [{"hash": "x", "hash_type": "md5", "password": None, "cracked": False}]
     rows = format_crack_csv(results)
     assert rows[0]["password"] == ""
+
+
+def test_write_csv_analyze_creates_file():
+    data = {
+        "_type": "analyze",
+        "results": [
+            {"password": "secret", "score": 40, "strength": "Weak"},
+            {"password": "correct horse battery staple", "score": 95, "strength": "Very Strong"},
+        ],
+    }
+    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="w") as f:
+        path = f.name
+    try:
+        write_output(data, path, "csv")
+        with open(path, newline="") as f:
+            rows = list(csv.DictReader(f))
+        assert rows[0] == {"password": "secret", "score": "40", "strength": "Weak"}
+        assert rows[1]["strength"] == "Very Strong"
+    finally:
+        os.unlink(path)
+
+
+def test_format_analyze_csv_single_password_shape():
+    rows = format_analyze_csv({"password": "secret", "score": 40, "strength": "Weak"})
+    assert rows == [{"password": "secret", "score": 40, "strength": "Weak"}]
 
 
 def test_json_output_includes_timestamp():
