@@ -167,6 +167,9 @@ class MarkovAttack:
             print(f"Error training Markov model: {e}")
             raise
 
+    def candidate_count(self) -> int:
+        return self.max_passwords
+
     def _worker(self, target_hash: str, num_passwords: int, result_queue: multiprocessing.Queue):
         """Worker process to generate and test passwords"""
         for _ in range(num_passwords):

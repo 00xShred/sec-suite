@@ -72,6 +72,17 @@ def _build_attack(args):
 def password_cracker_mode(args):
     timestamp = datetime.now(timezone.utc).isoformat()
 
+    if getattr(args, "count", False):
+        if not args.attack_mode:
+            print("[!] --attack-mode / -m is required for candidate counting. Choose: dictionary, markov, bruteforce, rainbow, rules")
+            return None
+        attack = _build_attack(args)
+        if attack is None:
+            return None
+        count = attack.candidate_count()
+        print(f"[*] Estimated candidates: {count}")
+        return None
+
     # Multi-hash mode
     if getattr(args, "target_file", None):
         if not args.attack_mode:
@@ -94,8 +105,10 @@ def password_cracker_mode(args):
                 continue
             original_ht = args.hash_type
             args.hash_type = ht
-            attack = _build_attack(args)
-            args.hash_type = original_ht  # restore after building
+            try:
+                attack = _build_attack(args)
+            finally:
+                args.hash_type = original_ht
             if attack is None:
                 return None
             found = attack.crack(h)
@@ -214,9 +227,17 @@ def password_analyzer_mode(args):
         print("=" * 50)
         for item in result["feedback"]:
             print(item)
+        if result["recommendations"]:
+            print("\nRecommendations:")
+            for item in result["recommendations"]:
+                print(f"- {item}")
         print(f"\nFinal Strength Score: {result['score']}/100")
         print(f"Strength: {result['strength']}")
-        return {"timestamp": timestamp, "password": args.password, **result}
+        return {
+            "_type": "analyze",
+            "timestamp": timestamp,
+            "results": [{"password": args.password, **result}],
+        }
 
     elif args.file:
         try:
@@ -228,7 +249,7 @@ def password_analyzer_mode(args):
                         result = analyze_password_strength(password)
                         print(f"Line {line_num}: {password} - Strength: {result['score']}/100")
                         all_results.append({"password": password, **result})
-            return {"timestamp": timestamp, "results": all_results}
+            return {"_type": "analyze", "timestamp": timestamp, "results": all_results}
         except FileNotFoundError:
             print(f"File not found: {args.file}")
 
@@ -257,10 +278,9 @@ def interactive_mode(args):
 
 def _maybe_save(result, args):
     """Write result to disk if --output was supplied."""
-    if result is None or not getattr(args, "output", None):
+    if result is None or not args.output:
         return
-    fmt = getattr(args, "format", "json") or "json"
-    write_output(result, args.output, fmt)
+    write_output(result, args.output, args.format or "json")
 
 
 def main():
@@ -294,6 +314,7 @@ def main():
     cracker_parser.add_argument("--min-length", type=int, default=1, help="Min password length for brute force")
     cracker_parser.add_argument("--max-length", type=int, default=8, help="Max password length for brute force")
     cracker_parser.add_argument("--rainbow-table", help="Rainbow table path")
+    cracker_parser.add_argument("--count", action="store_true", help="Print estimated candidate count and exit without cracking")
     cracker_parser.add_argument(
         "--rule-set", default="all",
         choices=["basic", "numbers", "leet", "special", "all"],
@@ -330,7 +351,7 @@ def main():
     analyzer_group.add_argument("-p", "--password", help="Single password to analyze")
     analyzer_group.add_argument("-f", "--file", help="File with passwords to analyze")
     analyzer_parser.add_argument("--output", help="Save results to file")
-    analyzer_parser.add_argument("--format", choices=["json"], default="json", help="Output format")
+    analyzer_parser.add_argument("--format", choices=["json", "csv"], default="json", help="Output format (default: json)")
 
     # ── generate-rainbow ──
     rainbow_parser = subparsers.add_parser("generate-rainbow", help="Generate a rainbow table")

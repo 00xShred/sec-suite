@@ -1,5 +1,6 @@
 import multiprocessing
 from typing import Optional
+from attacks.wordlist import wordlist_producer
 from utils.crypto import verify_password
 import os
 from utils.data_downloader import download_rockyou_wordlist
@@ -24,31 +25,11 @@ class DictionaryAttack:
 
     def _password_producer(self, password_queue: multiprocessing.Queue):
         """Produce passwords from wordlist in batches"""
-        from tqdm import tqdm
-        batch_size = 1000
-        batch = []
-        try:
-            with open(self.wordlist_path, "r", encoding="utf-8", errors="ignore") as f:
-                with tqdm(desc="Reading wordlist", unit="line", miniters=10000) as pbar:
-                    for line in f:
-                        password = line.strip()
-                        if password:
-                            batch.append(password)
-                        if len(batch) >= batch_size:
-                            password_queue.put(batch)
-                            batch = []
-                        pbar.update(1)
+        wordlist_producer(self.wordlist_path, password_queue, 1000, self.max_processes)
 
-            if batch:
-                password_queue.put(batch)
-
-            for _ in range(self.max_processes):
-                password_queue.put(None)
-
-        except Exception as e:
-            print(f"Error reading wordlist: {e}")
-            for _ in range(self.max_processes):
-                password_queue.put(None)
+    def candidate_count(self) -> int:
+        with open(self.wordlist_path, "r", encoding="utf-8", errors="ignore") as f:
+            return sum(1 for _ in f)
 
     def _password_consumer(
         self, password_queue: multiprocessing.Queue, target_hash: str, result_queue: multiprocessing.Queue

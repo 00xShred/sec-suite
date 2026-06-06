@@ -3,6 +3,7 @@ import multiprocessing
 import os
 from typing import Iterator, List, Optional
 
+from attacks.wordlist import wordlist_producer
 from utils.crypto import verify_password
 from utils.data_downloader import download_rockyou_wordlist
 
@@ -39,10 +40,15 @@ RULE_SETS = {
 def apply_rules(word: str, rule_names: List[str]) -> Iterator[str]:
     """Yield unique candidates by applying named rules to word.
 
-    Each rule is first applied directly to word, then all rules are applied
-    again to the first-level results (two-level composition). Self-inverse rules
-    (e.g. reverse, toggle_case) may therefore re-emit the original word as a
-    second-level candidate.
+    Rules use a two-level composition: each rule is first applied directly to
+    word to create first-level candidates, then all rules are applied again to
+    those first-level candidates. This can produce O(rules^2) candidates per
+    word; with rule_set="all" (12 rules), each word yields up to about 144
+    candidates before deduplication.
+
+    This breadth is intentional for thoroughness. Self-inverse rules (e.g.
+    reverse, toggle_case) may therefore re-emit the original word as a
+    second-level candidate, and duplicates are filtered before yielding.
     """
     seen: set = set()
 
@@ -93,24 +99,13 @@ class RuleBasedAttack:
         self.max_processes = max_processes
 
     def _producer(self, word_queue: multiprocessing.Queue):
-        from tqdm import tqdm
-        batch: List[str] = []
-        try:
-            with open(self.wordlist_path, "r", encoding="utf-8", errors="ignore") as f:
-                for line in tqdm(f, desc="Rule attack — reading wordlist", unit="line", miniters=10000):
-                    word = line.strip()
-                    if word:
-                        batch.append(word)
-                    if len(batch) >= 500:
-                        word_queue.put(batch)
-                        batch = []
-            if batch:
-                word_queue.put(batch)
-        except Exception as e:
-            print(f"[!] Error reading wordlist: {e}")
-        finally:
-            for _ in range(self.max_processes):
-                word_queue.put(None)
+        wordlist_producer(self.wordlist_path, word_queue, 500, self.max_processes)
+
+    def candidate_count(self) -> str:
+        with open(self.wordlist_path, "r", encoding="utf-8", errors="ignore") as f:
+            line_count = sum(1 for _ in f)
+        estimated = line_count * len(self.rule_names) * 5
+        return f"~{estimated} (estimated)"
 
     def _consumer(
         self,

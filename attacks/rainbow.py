@@ -35,6 +35,12 @@ class RainbowAttack:
             print(f"Error loading rainbow table: {e}")
             self.rainbow_table = {}
 
+    def candidate_count(self) -> int:
+        if not self.rainbow_table_path:
+            return 0
+        with open(self.rainbow_table_path, "r", encoding="utf-8", errors="ignore") as f:
+            return sum(1 for _ in f)
+
     def generate_rainbow_table(
         self, wordlist_path: str, output_path: str, hash_type: str = "md5"
     ):

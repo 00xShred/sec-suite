@@ -122,3 +122,6 @@ class BruteForceAttack:
         for length in range(self.min_length, self.max_length + 1):
             total += charset_size**length
         return total
+
+    def candidate_count(self) -> int:
+        return self.calculate_total_combinations()
