@@ -16,7 +16,7 @@ A security toolkit for password auditing and network reconnaissance. Provides bo
 ## Setup
 
 ```bash
-git clone https://github.com/gab-dev-7/sec-suite.git
+git clone https://codeberg.org/0xShred/sec-suite.git
 cd sec-suite
 poetry install
 poetry shell
