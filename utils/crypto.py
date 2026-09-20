@@ -67,7 +67,7 @@ def verify_password(password: str, hash_value: str, algorithm: str) -> bool:
                     p=1,
                     dklen=64,
                 )
-                return new_hash.hex() == hashed_password_hex
+                return hmac.compare_digest(new_hash.hex(), hashed_password_hex.lower())
             except (ValueError, TypeError, binascii.Error):
                 return False
         elif algorithm == "argon2":
