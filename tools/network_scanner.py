@@ -32,6 +32,7 @@ class NetworkScanner:
     """
 
     MAX_CIDR_HOSTS = 4096
+    MAX_THREADS = 512
 
     def __init__(
         self,
@@ -43,7 +44,9 @@ class NetworkScanner:
     ):
         self.target = target
         self.ports_to_scan = self._parse_ports(ports)
-        self.max_threads = max_threads
+        if max_threads < 1:
+            raise ValueError("max_threads must be at least 1")
+        self.max_threads = min(max_threads, self.MAX_THREADS)
         self.timeout = timeout
         self.scan_type = scan_type
         self.open_ports: List[Dict] = []

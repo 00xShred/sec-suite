@@ -48,3 +48,18 @@ def test_syn_scan_rst_matches_handshake(monkeypatch):
     assert rst.dport == 80
     assert rst.seq == 43
     assert rst.ack == 101
+
+
+def test_max_threads_is_clamped():
+    scanner = NetworkScanner("127.0.0.1", ports="1", max_threads=100000)
+
+    assert scanner.max_threads == NetworkScanner.MAX_THREADS
+
+
+def test_max_threads_rejects_zero():
+    try:
+        NetworkScanner("127.0.0.1", ports="1", max_threads=0)
+    except ValueError as exc:
+        assert "max_threads" in str(exc)
+    else:
+        raise AssertionError("zero max_threads accepted")
