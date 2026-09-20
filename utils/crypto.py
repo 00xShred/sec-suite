@@ -124,7 +124,12 @@ def base64_encode(data: str) -> str:
 
 def base64_decode(data: str) -> str:
     """Base64 decode data"""
-    return base64.b64decode(data.encode("utf-8")).decode("utf-8")
+    try:
+        return base64.b64decode(data.encode("utf-8"), validate=True).decode("utf-8")
+    except binascii.Error as exc:
+        raise ValueError("Invalid base64 input") from exc
+    except UnicodeDecodeError as exc:
+        raise ValueError("Decoded data is not valid UTF-8") from exc
 
 
 def url_encode(data: str) -> str:
@@ -154,4 +159,9 @@ def hex_encode(data: str) -> str:
 
 def hex_decode(data: str) -> str:
     """Hex decode data"""
-    return bytes.fromhex(data).decode("utf-8")
+    try:
+        return bytes.fromhex(data).decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError("Decoded data is not valid UTF-8") from exc
+    except ValueError as exc:
+        raise ValueError("Invalid hex input") from exc
