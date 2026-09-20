@@ -146,11 +146,6 @@ def password_cracker_mode(args):
             "results": results,
         }
 
-    if args.target_hash or getattr(args, "target_file", None):
-        if not args.attack_mode:
-            print("[!] --attack-mode / -m is required for cracking. Choose: dictionary, markov, bruteforce, rainbow, rules")
-            return None
-
     # Single-hash mode
     hash_type = args.hash_type
     if not hash_type and args.target_hash:
