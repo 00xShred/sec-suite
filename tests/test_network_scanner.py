@@ -14,3 +14,14 @@ def test_non_root_syn_scan_falls_back_to_connect(monkeypatch):
     scanner.scan()
 
     assert calls == [("127.0.0.1", 1)]
+
+
+def test_get_hosts_rejects_huge_cidr():
+    scanner = NetworkScanner("10.0.0.0/8", ports="1")
+
+    try:
+        scanner._get_hosts()
+    except ValueError as exc:
+        assert "too large" in str(exc)
+    else:
+        raise AssertionError("large CIDR was accepted")

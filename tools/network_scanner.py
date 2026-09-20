@@ -30,6 +30,8 @@ class NetworkScanner:
       connect — full TCP connect scan; no root needed, also grabs service banners
     """
 
+    MAX_CIDR_HOSTS = 4096
+
     def __init__(
         self,
         target: str,
@@ -81,8 +83,15 @@ class NetworkScanner:
     def _get_hosts(self) -> List[str]:
         try:
             network = ipaddress.ip_network(self.target, strict=False)
+            if network.num_addresses > self.MAX_CIDR_HOSTS:
+                raise ValueError(
+                    f"CIDR target is too large ({network.num_addresses} addresses); "
+                    f"limit is {self.MAX_CIDR_HOSTS}"
+                )
             return [str(ip) for ip in network.hosts()]
-        except ValueError:
+        except ValueError as exc:
+            if "/" in self.target:
+                raise exc
             return [self.target]
 
     def _syn_scan_port(self, host: str, port: int) -> bool:
