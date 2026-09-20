@@ -19,13 +19,15 @@ class RainbowAttack:
     def load_rainbow_table(self, file_path: str):
         """Load rainbow table from file"""
         try:
-            # Try to load as json first
-            if file_path.endswith(".json"):
-                with open(file_path, "r", encoding="utf-8") as f:
-                    self.rainbow_table = json.load(f)
-            else:
-                # Load as text file (hash:password format)
-                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                try:
+                    table = json.load(f)
+                    if isinstance(table, dict):
+                        self.rainbow_table = table
+                    else:
+                        raise ValueError("Rainbow JSON table must be an object")
+                except json.JSONDecodeError:
+                    f.seek(0)
                     for line in f:
                         if ":" in line:
                             hash_val, password = line.strip().split(":", 1)
