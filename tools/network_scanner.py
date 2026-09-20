@@ -98,9 +98,11 @@ class NetworkScanner:
         """Returns True if port is open (SYN/ACK received). Requires root."""
         syn = IP(dst=host) / TCP(dport=port, flags="S")
         resp = sr1(syn, timeout=self.timeout, verbose=0)
-        if resp and resp.haslayer(TCP) and resp.getlayer(TCP).flags == 0x12:
-            send(IP(dst=host) / TCP(dport=port, flags="R"), verbose=0)
-            return True
+        if resp and resp.haslayer(TCP):
+            flags = int(resp.getlayer(TCP).flags)
+            if flags & 0x12 == 0x12 and not flags & 0x04:
+                send(IP(dst=host) / TCP(dport=port, flags="R"), verbose=0)
+                return True
         return False
 
     def _connect_scan_port(self, host: str, port: int) -> tuple:
