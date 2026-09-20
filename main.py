@@ -72,6 +72,10 @@ def _build_attack(args):
 def password_cracker_mode(args):
     timestamp = datetime.now(timezone.utc).isoformat()
 
+    if args.attack_mode == "rainbow" and not args.rainbow_table and not args.test_password:
+        print("[!] --rainbow-table is required when using -m rainbow")
+        return None
+
     if getattr(args, "count", False):
         if not args.attack_mode:
             print("[!] --attack-mode / -m is required for candidate counting. Choose: dictionary, markov, bruteforce, rainbow, rules")
