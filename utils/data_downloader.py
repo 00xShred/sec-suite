@@ -7,7 +7,7 @@ def download_file(url: str, destination_path: str):
     """
     Downloads a file from a given URL to a specified destination path with a progress bar.
     """
-    response = requests.get(url, stream=True, allow_redirects=True)
+    response = requests.get(url, stream=True, allow_redirects=True, timeout=(10, 30))
     response.raise_for_status()  # Raise an exception for bad status codes
 
     total_size = int(response.headers.get("content-length", 0))
