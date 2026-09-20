@@ -45,6 +45,12 @@ class BruteForceAttack:
                 charset += self.CHAR_SETS[char]
         return "".join(sorted(set(charset)))  # Remove duplicates
 
+    def _charset_chunks(self) -> List[List[str]]:
+        charset_list = list(self.charset)
+        worker_count = min(self.max_processes, len(charset_list))
+        chunk_size = (len(charset_list) + worker_count - 1) // worker_count
+        return [charset_list[i : i + chunk_size] for i in range(0, len(charset_list), chunk_size)]
+
     def _worker(
         self, 
         target_hash: str, 
@@ -86,14 +92,7 @@ class BruteForceAttack:
             processes = []
             
             # Divide the charset among workers
-            charset_list = list(self.charset)
-            chunk_size = max(1, len(charset_list) // self.max_processes)
-            
-            for i in range(0, len(charset_list), chunk_size):
-                chars_chunk = charset_list[i : i + chunk_size]
-                if not chars_chunk:
-                    continue
-                    
+            for chars_chunk in self._charset_chunks():
                 p = multiprocessing.Process(
                     target=self._worker,
                     args=(target_hash, length, chars_chunk, result_queue)

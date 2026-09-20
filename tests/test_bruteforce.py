@@ -17,3 +17,9 @@ def test_bruteforce_candidate_count_exact_math():
 def test_bruteforce_rejects_zero_min_length():
     with pytest.raises(ValueError, match="min_length"):
         BruteForceAttack(hash_type="sha256", charset="d", min_length=0, max_length=3)
+
+
+def test_bruteforce_chunks_do_not_exceed_thread_count():
+    attack = BruteForceAttack(hash_type="sha256", charset="lud", max_processes=4)
+
+    assert len(attack._charset_chunks()) == 4
