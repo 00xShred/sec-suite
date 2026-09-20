@@ -112,11 +112,15 @@ class BruteForceAttack:
                         found_password = result
                         for p in processes:
                             p.terminate()
+                        for p in processes:
+                            p.join()
                         return found_password
                     finished_workers += 1
             except KeyboardInterrupt:
                 for p in processes:
                     p.terminate()
+                for p in processes:
+                    p.join()
                 raise
 
         return None

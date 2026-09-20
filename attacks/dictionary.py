@@ -89,12 +89,18 @@ class DictionaryAttack:
                     for p in consumer_processes:
                         p.terminate()
                     producer_process.terminate()
+                    for p in consumer_processes:
+                        p.join()
+                    producer_process.join()
                 results_received += 1
         except KeyboardInterrupt:
             print("\n[!] Attack interrupted by user")
             for p in consumer_processes:
                 p.terminate()
             producer_process.terminate()
+            for p in consumer_processes:
+                p.join()
+            producer_process.join()
             raise
 
         return found_password

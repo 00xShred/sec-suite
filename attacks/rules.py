@@ -157,11 +157,17 @@ class RuleBasedAttack:
                     for c in consumers:
                         c.terminate()
                     producer.terminate()
+                    for c in consumers:
+                        c.join()
+                    producer.join()
                 finished += 1
         except KeyboardInterrupt:
             for c in consumers:
                 c.terminate()
             producer.terminate()
+            for c in consumers:
+                c.join()
+            producer.join()
             raise
 
         return found
