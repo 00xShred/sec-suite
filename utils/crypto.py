@@ -89,7 +89,7 @@ def verify_password(password: str, hash_value: str, algorithm: str) -> bool:
 # - 64 hex chars: SHA-256 assumed; could also be SHA-3-256
 def identify_hash_type(hash_string: str) -> Optional[str]:
     """Attempt to identify the hash type"""
-    hash_string = hash_string.strip()
+    hash_string = hash_string.strip().lower()
 
     # Length-based identification
     if len(hash_string) == 32 and re.match(r"^[a-f0-9]{32}$", hash_string):
