@@ -106,8 +106,8 @@ class RuleBasedAttack:
     def candidate_count(self) -> str:
         with open(self.wordlist_path, "r", encoding="utf-8", errors="ignore") as f:
             line_count = sum(1 for _ in f)
-        estimated = line_count * len(self.rule_names) * 5
-        return f"~{estimated} (estimated)"
+        fanout = len(list(apply_rules("password", self.rule_names)))
+        return f"~{line_count * fanout} (estimated)"
 
     def _consumer(
         self,

@@ -1,4 +1,4 @@
-from attacks.rules import apply_rules, RULE_SETS, BUILTIN_RULES
+from attacks.rules import apply_rules, RULE_SETS, BUILTIN_RULES, RuleBasedAttack
 
 
 def test_apply_noop_yields_word():
@@ -90,3 +90,12 @@ def test_composition_capitalize_plus_special():
     # Two-level composition: capitalize "cat" -> "Cat", then append_special -> "Cat!"
     results = list(apply_rules("cat", ["capitalize", "append_special"]))
     assert "Cat!" in results
+
+
+def test_candidate_count_uses_rule_fanout(tmp_path):
+    wordlist = tmp_path / "words.txt"
+    wordlist.write_text("one\ntwo\n", encoding="utf-8")
+    attack = RuleBasedAttack(str(wordlist), "md5", rule_set="all")
+    expected = 2 * len(list(apply_rules("password", RULE_SETS["all"])))
+
+    assert attack.candidate_count() == f"~{expected} (estimated)"
