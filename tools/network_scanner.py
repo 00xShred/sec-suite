@@ -1,3 +1,4 @@
+import os
 import socket
 import threading
 import ipaddress
@@ -153,8 +154,6 @@ class NetworkScanner:
 
     def scan(self) -> List[Dict]:
         """Run the scan and return list of per-host result dicts."""
-        import os
-
         hosts = self._get_hosts()
 
         scan_type = self.scan_type
@@ -163,8 +162,8 @@ class NetworkScanner:
                 print("[!] Scapy not available. Falling back to connect scan.")
                 scan_type = "connect"
             elif os.name != "nt" and os.geteuid() != 0:
-                print("[!] WARNING: SYN scan usually requires root privileges.")
-                print("[!] Tip: use --scan-type connect to scan without root.\n")
+                print("[!] SYN scan requires root privileges. Falling back to connect scan.\n")
+                scan_type = "connect"
 
         all_results: List[Dict] = []
 
