@@ -55,6 +55,8 @@ def _write_csv(data: dict, path: str, overwrite: bool = False) -> None:
             f"CSV output requires '_type' to be 'scan', 'crack', or 'analyze', got: {dtype!r}"
         )
 
+    rows = [{k: _safe_csv_cell(v) for k, v in row.items()} for row in rows]
+
     _replace_existing(path, overwrite)
     directory = os.path.dirname(os.path.abspath(path)) or "."
     fd, tmp_path = tempfile.mkstemp(prefix=".sec-suite-", suffix=".tmp", dir=directory, text=True)
@@ -68,6 +70,12 @@ def _write_csv(data: dict, path: str, overwrite: bool = False) -> None:
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
         raise
+
+
+def _safe_csv_cell(value):
+    if isinstance(value, str) and value[:1] in ("=", "+", "-", "@"):
+        return "'" + value
+    return value
 
 
 def format_scan_csv(ports: list) -> list:

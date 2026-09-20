@@ -134,3 +134,18 @@ def test_write_output_refuses_existing_file():
             write_output({"foo": "bar"}, path, "json")
         with open(path, encoding="utf-8") as f:
             assert f.read() == "keep"
+
+
+def test_write_csv_escapes_formula_cells():
+    data = {
+        "_type": "scan",
+        "open_ports": [
+            {"host": "127.0.0.1", "port": 80, "service": "HTTP", "banner": "=cmd|' /C calc'!A0"},
+        ],
+    }
+    tmp, path = temp_path(".csv")
+    with tmp:
+        write_output(data, path, "csv")
+        with open(path, newline="") as f:
+            rows = list(csv.DictReader(f))
+        assert rows[0]["banner"].startswith("'=")
