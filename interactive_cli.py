@@ -266,6 +266,8 @@ class InteractiveCLI:
             else:
                 print(f"\n[-] Password not found in wordlist")
 
+        except KeyboardInterrupt:
+            print("\n[!] Attack cancelled.")
         except Exception as e:
             print(f"\n[!] {e}")
 
@@ -306,6 +308,8 @@ class InteractiveCLI:
             else:
                 print(f"\n[-] Password not found with Markov attack")
 
+        except KeyboardInterrupt:
+            print("\n[!] Attack cancelled.")
         except Exception as e:
             print(f"\n[!] {e}")
 
@@ -362,6 +366,8 @@ class InteractiveCLI:
             else:
                 print(f"\n[-] Password not found with brute force")
 
+        except KeyboardInterrupt:
+            print("\n[!] Attack cancelled.")
         except Exception as e:
             print(f"\n[!] {e}")
 
@@ -395,6 +401,8 @@ class InteractiveCLI:
             else:
                 print(f"\n[-] Hash not found in rainbow table")
 
+        except KeyboardInterrupt:
+            print("\n[!] Attack cancelled.")
         except Exception as e:
             print(f"\n[!] {e}")
 
@@ -444,6 +452,8 @@ class InteractiveCLI:
                 print(f"\n[+] Password found: {result}")
             else:
                 print(f"\n[-] Password not found with rule-based attack")
+        except KeyboardInterrupt:
+            print("\n[!] Attack cancelled.")
         except Exception as e:
             print(f"\n[!] {e}")
 
