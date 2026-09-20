@@ -335,21 +335,25 @@ class InteractiveCLI:
         max_len = input("Enter maximum length [6]: ").strip() or "6"
         threads = input("Enter number of threads [4]: ").strip() or "4"
 
-        print(f"\nStarting brute force attack...")
-        print(
-            f"This will test up to {BruteForceAttack(hash_type, charset, int(min_len), int(max_len), max_processes=1).calculate_total_combinations()} combinations"
-        )
-        print("This may take a very long time!")
-
-        proceed = input("Proceed? (y/n): ").lower().strip()
-        if proceed != "y":
-            print("Attack cancelled.")
-            self.wait_for_enter()
-            return
-
         try:
+            min_len_int = int(min_len)
+            max_len_int = int(max_len)
+            threads_int = int(threads)
+
+            print(f"\nStarting brute force attack...")
+            print(
+                f"This will test up to {BruteForceAttack(hash_type, charset, min_len_int, max_len_int, max_processes=1).calculate_total_combinations()} combinations"
+            )
+            print("This may take a very long time!")
+
+            proceed = input("Proceed? (y/n): ").lower().strip()
+            if proceed != "y":
+                print("Attack cancelled.")
+                self.wait_for_enter()
+                return
+
             attack = BruteForceAttack(
-                hash_type, charset, int(min_len), int(max_len), max_processes=int(threads)
+                hash_type, charset, min_len_int, max_len_int, max_processes=threads_int
             )
             result = attack.crack(target_hash)
 
