@@ -30,6 +30,13 @@ class BruteForceAttack:
         self.max_length = max_length
         self.max_processes = max_processes
 
+        if self.min_length < 1:
+            raise ValueError("min_length must be at least 1")
+        if self.max_length < self.min_length:
+            raise ValueError("max_length must be greater than or equal to min_length")
+        if not self.charset:
+            raise ValueError("charset must include at least one known character set")
+
     def _build_charset(self, charset_spec: str) -> str:
         """Build character set from specification string"""
         charset = ""
