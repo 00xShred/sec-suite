@@ -1,21 +1,26 @@
-import json
 import csv
+import json
 import os
 import tempfile
+
+import pytest
+
 from utils.output import write_output, format_scan_csv, format_crack_csv, format_analyze_csv
+
+
+def temp_path(suffix):
+    d = tempfile.TemporaryDirectory()
+    return d, os.path.join(d.name, f"out{suffix}")
 
 
 def test_write_json_creates_file():
     data = {"hash": "abc", "password": "secret", "cracked": True}
-    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
-        path = f.name
-    try:
+    tmp, path = temp_path(".json")
+    with tmp:
         write_output(data, path, "json")
         with open(path) as f:
             loaded = json.load(f)
         assert loaded["password"] == "secret"
-    finally:
-        os.unlink(path)
 
 
 def test_write_csv_crack_creates_file():
@@ -26,16 +31,13 @@ def test_write_csv_crack_creates_file():
             {"hash": "xyz", "hash_type": "md5", "password": None, "cracked": False},
         ],
     }
-    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="w") as f:
-        path = f.name
-    try:
+    tmp, path = temp_path(".csv")
+    with tmp:
         write_output(data, path, "csv")
         with open(path, newline="") as f:
             rows = list(csv.DictReader(f))
         assert rows[0]["password"] == "hi"
         assert rows[1]["cracked"] == "False"
-    finally:
-        os.unlink(path)
 
 
 def test_write_csv_scan_creates_file():
@@ -46,17 +48,14 @@ def test_write_csv_scan_creates_file():
             {"host": "127.0.0.1", "port": 80, "service": "HTTP", "banner": ""},
         ],
     }
-    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="w") as f:
-        path = f.name
-    try:
+    tmp, path = temp_path(".csv")
+    with tmp:
         write_output(data, path, "csv")
         with open(path, newline="") as f:
             rows = list(csv.DictReader(f))
         assert int(rows[0]["port"]) == 22
         assert rows[0]["host"] == "127.0.0.1"
         assert rows[0]["service"] == "SSH"
-    finally:
-        os.unlink(path)
 
 
 def test_format_scan_csv_returns_rows():
@@ -82,16 +81,13 @@ def test_write_csv_analyze_creates_file():
             {"password": "correct horse battery staple", "score": 95, "strength": "Very Strong"},
         ],
     }
-    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="w") as f:
-        path = f.name
-    try:
+    tmp, path = temp_path(".csv")
+    with tmp:
         write_output(data, path, "csv")
         with open(path, newline="") as f:
             rows = list(csv.DictReader(f))
         assert rows[0] == {"password": "secret", "score": "40", "strength": "Weak"}
         assert rows[1]["strength"] == "Very Strong"
-    finally:
-        os.unlink(path)
 
 
 def test_format_analyze_csv_single_password_shape():
@@ -100,47 +96,41 @@ def test_format_analyze_csv_single_password_shape():
 
 
 def test_json_output_includes_timestamp():
-    data = {"foo": "bar"}
-    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
-        path = f.name
-    try:
-        write_output(data, path, "json")
+    tmp, path = temp_path(".json")
+    with tmp:
+        write_output({"foo": "bar"}, path, "json")
         with open(path) as f:
             loaded = json.load(f)
         assert "timestamp" in loaded
-    finally:
-        os.unlink(path)
 
 
 def test_json_output_strips_underscore_keys():
-    data = {"_type": "crack", "result": "found"}
-    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
-        path = f.name
-    try:
-        write_output(data, path, "json")
+    tmp, path = temp_path(".json")
+    with tmp:
+        write_output({"_type": "crack", "result": "found"}, path, "json")
         with open(path) as f:
             loaded = json.load(f)
         assert "_type" not in loaded
         assert "result" in loaded
-    finally:
-        os.unlink(path)
 
 
 def test_write_output_unknown_format_raises():
-    import pytest
-    data = {"foo": "bar"}
     with pytest.raises(ValueError, match="json"):
-        write_output(data, "/tmp/irrelevant.xyz", "xml")
+        write_output({"foo": "bar"}, "/tmp/irrelevant.xyz", "xml")
 
 
 def test_write_csv_unknown_type_raises():
-    import pytest
-    data = {"_type": "unknown", "results": []}
-    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="w") as f:
-        path = f.name
-    try:
-        with pytest.raises(ValueError, match="scan"):
-            write_output(data, path, "csv")
-    finally:
-        if os.path.exists(path):
-            os.unlink(path)
+    tmp, path = temp_path(".csv")
+    with tmp, pytest.raises(ValueError, match="scan"):
+        write_output({"_type": "unknown", "results": []}, path, "csv")
+
+
+def test_write_output_refuses_existing_file():
+    tmp, path = temp_path(".json")
+    with tmp:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("keep")
+        with pytest.raises(FileExistsError):
+            write_output({"foo": "bar"}, path, "json")
+        with open(path, encoding="utf-8") as f:
+            assert f.read() == "keep"

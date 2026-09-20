@@ -1,29 +1,45 @@
 import json
 import csv
 import logging
+import os
+import tempfile
 from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
 
-def write_output(data: dict, path: str, fmt: str = "json") -> None:
+def write_output(data: dict, path: str, fmt: str = "json", overwrite: bool = False) -> None:
     if fmt == "json":
-        _write_json(data, path)
+        _write_json(data, path, overwrite)
     elif fmt == "csv":
-        _write_csv(data, path)
+        _write_csv(data, path, overwrite)
     else:
         raise ValueError(f"Unknown format: {fmt}. Choose 'json' or 'csv'.")
     logger.info("Results saved to: %s", path)
 
 
-def _write_json(data: dict, path: str) -> None:
+def _replace_existing(path: str, overwrite: bool) -> None:
+    if os.path.exists(path) and not overwrite:
+        raise FileExistsError(f"Output file already exists: {path}")
+
+
+def _write_json(data: dict, path: str, overwrite: bool = False) -> None:
+    _replace_existing(path, overwrite)
     out = {k: v for k, v in data.items() if not k.startswith("_")}
     out.setdefault("timestamp", datetime.now(timezone.utc).isoformat())
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(out, f, indent=2)
+    directory = os.path.dirname(os.path.abspath(path)) or "."
+    fd, tmp_path = tempfile.mkstemp(prefix=".sec-suite-", suffix=".tmp", dir=directory, text=True)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(out, f, indent=2)
+        os.replace(tmp_path, path)
+    except Exception:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
 
 
-def _write_csv(data: dict, path: str) -> None:
+def _write_csv(data: dict, path: str, overwrite: bool = False) -> None:
     dtype = data.get("_type")
     if dtype == "scan":
         rows = format_scan_csv(data.get("open_ports", []))
@@ -39,10 +55,19 @@ def _write_csv(data: dict, path: str) -> None:
             f"CSV output requires '_type' to be 'scan', 'crack', or 'analyze', got: {dtype!r}"
         )
 
-    with open(path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
+    _replace_existing(path, overwrite)
+    directory = os.path.dirname(os.path.abspath(path)) or "."
+    fd, tmp_path = tempfile.mkstemp(prefix=".sec-suite-", suffix=".tmp", dir=directory, text=True)
+    try:
+        with os.fdopen(fd, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
+        os.replace(tmp_path, path)
+    except Exception:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
 
 
 def format_scan_csv(ports: list) -> list:
