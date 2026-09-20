@@ -12,6 +12,8 @@ from utils.crypto import (
 
 def encode_decode(data: str, operation: str, encoding_type: str) -> str:
     """Encode or decode data using various methods"""
+    if operation not in ("encode", "decode"):
+        raise ValueError("operation must be 'encode' or 'decode'")
 
     if encoding_type == "base64":
         if operation == "encode":
