@@ -1,4 +1,5 @@
 import os
+import random
 import socket
 import threading
 import ipaddress
@@ -96,12 +97,18 @@ class NetworkScanner:
 
     def _syn_scan_port(self, host: str, port: int) -> bool:
         """Returns True if port is open (SYN/ACK received). Requires root."""
-        syn = IP(dst=host) / TCP(dport=port, flags="S")
+        sport = random.randint(1024, 65535)
+        syn = IP(dst=host) / TCP(sport=sport, dport=port, flags="S")
         resp = sr1(syn, timeout=self.timeout, verbose=0)
         if resp and resp.haslayer(TCP):
-            flags = int(resp.getlayer(TCP).flags)
+            tcp = resp.getlayer(TCP)
+            flags = int(tcp.flags)
             if flags & 0x12 == 0x12 and not flags & 0x04:
-                send(IP(dst=host) / TCP(dport=port, flags="R"), verbose=0)
+                send(
+                    IP(dst=host)
+                    / TCP(sport=sport, dport=port, flags="R", seq=tcp.ack, ack=tcp.seq + 1),
+                    verbose=0,
+                )
                 return True
         return False
 
