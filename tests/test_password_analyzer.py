@@ -43,3 +43,10 @@ def test_calculate_entropy_all_lower():
     # 6 * log2(26) ≈ 28.2
     e = calculate_entropy("abcdef")
     assert abs(e - 28.2) < 0.1
+
+
+def test_repeated_password_has_low_entropy():
+    result = analyze_password_strength("aaaaaaaaaaaaa")
+
+    assert result["details"]["entropy_per_char"] < 10
+    assert not any("High entropy" in item for item in result["feedback"])

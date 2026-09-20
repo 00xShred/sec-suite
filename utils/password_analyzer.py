@@ -114,7 +114,9 @@ def calculate_entropy(password: str) -> float:
     if char_set_size == 0:
         return 0
 
-    return len(password) * math.log2(char_set_size)
+    raw_entropy = len(password) * math.log2(char_set_size)
+    uniqueness_ratio = len(set(password)) / len(password)
+    return raw_entropy * uniqueness_ratio
 
 
 def check_common_patterns(password: str) -> int:
