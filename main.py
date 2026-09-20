@@ -81,6 +81,10 @@ def password_cracker_mode(args):
         print("[!] Provide --target-hash, --target-file, --test-password, or --count")
         return None
 
+    if getattr(args, "threads", 1) < 1:
+        print("[!] --threads must be at least 1")
+        return None
+
     if args.attack_mode == "rainbow" and not args.rainbow_table and not args.test_password:
         print("[!] --rainbow-table is required when using -m rainbow")
         return None

@@ -60,3 +60,19 @@ def test_multi_hash_reuses_attack_for_same_hash_type(monkeypatch, tmp_path):
     password_cracker_mode(args)
 
     assert build_count == 1
+
+
+def test_crack_rejects_zero_threads(capsys):
+    args = SimpleNamespace(
+        attack_mode="dictionary",
+        hash_type="md5",
+        rainbow_table=None,
+        test_password=None,
+        count=False,
+        target_file=None,
+        target_hash="abc",
+        threads=0,
+    )
+
+    assert password_cracker_mode(args) is None
+    assert "--threads must be at least 1" in capsys.readouterr().out

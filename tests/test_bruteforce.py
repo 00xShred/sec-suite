@@ -23,3 +23,8 @@ def test_bruteforce_chunks_do_not_exceed_thread_count():
     attack = BruteForceAttack(hash_type="sha256", charset="lud", max_processes=4)
 
     assert len(attack._charset_chunks()) == 4
+
+
+def test_bruteforce_rejects_zero_processes():
+    with pytest.raises(ValueError, match="max_processes"):
+        BruteForceAttack(hash_type="sha256", charset="d", max_processes=0)

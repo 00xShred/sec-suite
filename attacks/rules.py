@@ -93,6 +93,8 @@ class RuleBasedAttack:
                 f"Wordlist not found: '{wordlist_path}'. "
                 "Download a wordlist (e.g. rockyou.txt) into the data/ directory."
             )
+        if max_processes < 1:
+            raise ValueError("max_processes must be at least 1")
         self.wordlist_path = wordlist_path
         self.hash_type = hash_type
         self.rule_names: List[str] = RULE_SETS.get(rule_set, RULE_SETS["all"])

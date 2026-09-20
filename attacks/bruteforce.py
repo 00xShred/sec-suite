@@ -30,6 +30,8 @@ class BruteForceAttack:
         self.max_length = max_length
         self.max_processes = max_processes
 
+        if self.max_processes < 1:
+            raise ValueError("max_processes must be at least 1")
         if self.min_length < 1:
             raise ValueError("min_length must be at least 1")
         if self.max_length < self.min_length:

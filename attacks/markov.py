@@ -151,6 +151,8 @@ class MarkovAttack:
         if training_file == "data/rockyou.txt" and not os.path.exists(training_file):
             download_rockyou_wordlist()
         
+        if max_processes < 1:
+            raise ValueError("max_processes must be at least 1")
         self.training_file = training_file
         self.hash_type = hash_type
         self.max_processes = max_processes

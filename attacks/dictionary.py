@@ -19,6 +19,8 @@ class DictionaryAttack:
                 "Please ensure the file exists. "
                 "You may need to download a wordlist like 'rockyou.txt' and place it in the 'data' directory."
             )
+        if max_processes < 1:
+            raise ValueError("max_processes must be at least 1")
         self.wordlist_path = wordlist_path
         self.hash_type = hash_type
         self.max_processes = max_processes
