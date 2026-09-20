@@ -21,6 +21,9 @@ from attacks.rainbow import RainbowAttack
 from tools.network_scanner import NetworkScanner
 
 
+VALID_HASH_TYPES = ("md5", "sha1", "sha256", "sha512", "bcrypt", "scrypt", "argon2")
+
+
 class InteractiveCLI:
     """Interactive menu-driven interface for SEC-SUITE"""
 
@@ -72,6 +75,13 @@ class InteractiveCLI:
     def wait_for_enter(self, message: str = "Press Enter to continue..."):
         """Wait for user to press Enter"""
         input(f"\n{message}")
+
+    def validate_hash_type(self, hash_type: str) -> bool:
+        if hash_type in VALID_HASH_TYPES:
+            return True
+        print(f"Invalid hash type. Choose from: {', '.join(VALID_HASH_TYPES)}")
+        self.wait_for_enter()
+        return False
 
     def main_menu(self):
         """Main menu"""
@@ -241,8 +251,10 @@ class InteractiveCLI:
 
         if not hash_type:
             hash_type = input(
-                "Enter hash type (md5, sha1, sha256, sha512, bcrypt): "
+                "Enter hash type (md5, sha1, sha256, sha512, bcrypt, scrypt, argon2): "
             ).strip()
+        if not self.validate_hash_type(hash_type):
+            return
 
         wordlist = (
             input("Enter wordlist path [data/rockyou.txt]: ").strip()
@@ -284,7 +296,9 @@ class InteractiveCLI:
             self.wait_for_enter()
             return
 
-        hash_type = input("Enter hash type (md5, sha1, sha256, sha512): ").strip()
+        hash_type = input("Enter hash type (md5, sha1, sha256, sha512, bcrypt, scrypt, argon2): ").strip()
+        if not self.validate_hash_type(hash_type):
+            return
         training_file = (
             input("Enter training file [data/rockyou.txt]: ").strip()
             or "data/rockyou.txt"
@@ -326,7 +340,9 @@ class InteractiveCLI:
             self.wait_for_enter()
             return
 
-        hash_type = input("Enter hash type (md5, sha1, sha256, sha512): ").strip()
+        hash_type = input("Enter hash type (md5, sha1, sha256, sha512, bcrypt, scrypt, argon2): ").strip()
+        if not self.validate_hash_type(hash_type):
+            return
 
         print("\nCharacter sets:")
         print("  l - lowercase letters (abc...)")
@@ -426,7 +442,9 @@ class InteractiveCLI:
             if use_auto != "y":
                 hash_type = None
         if not hash_type:
-            hash_type = input("Enter hash type (md5, sha1, sha256, sha512, bcrypt): ").strip()
+            hash_type = input("Enter hash type (md5, sha1, sha256, sha512, bcrypt, scrypt, argon2): ").strip()
+        if not self.validate_hash_type(hash_type):
+            return
 
         wordlist = input("Enter wordlist path [data/rockyou.txt]: ").strip() or "data/rockyou.txt"
 
