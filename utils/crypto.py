@@ -1,4 +1,5 @@
 import hashlib
+import hmac
 import bcrypt
 import base64
 import binascii
@@ -48,7 +49,7 @@ def verify_password(password: str, hash_value: str, algorithm: str) -> bool:
     """Verify a password against a hash"""
     try:
         if algorithm in ["md5", "sha1", "sha256", "sha512"]:
-            return hash_password(password, algorithm) == hash_value
+            return hmac.compare_digest(hash_password(password, algorithm), hash_value.lower())
         elif algorithm == "bcrypt":
             return bcrypt.checkpw(password.encode("utf-8"), hash_value.encode("utf-8"))
         elif algorithm == "scrypt":
