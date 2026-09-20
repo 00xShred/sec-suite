@@ -24,9 +24,9 @@ def analyze_password_strength(password: str) -> dict:
     has_digit = any(c.isdigit() for c in password)
     has_special = any(c in string.punctuation for c in password)
 
-    # Length (max 25 pts)
+    # Length (max 30 pts)
     if length >= 12:
-        score += 25
+        score += 30
         feedback.append("[+] Good length (12+ characters)")
     elif length >= 8:
         score += 15
@@ -50,10 +50,10 @@ def analyze_password_strength(password: str) -> dict:
         score += 5
         feedback.append("[-] Poor character variety (only 1 character type)")
 
-    # Entropy (max 20 pts)
+    # Entropy (max 30 pts)
     entropy = calculate_entropy(password)
     if entropy > 60.0:
-        score += 20
+        score += 30
         feedback.append(f"[+] High entropy ({entropy:.2f} bits)")
     elif entropy > 40.0:
         score += 15

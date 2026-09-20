@@ -50,3 +50,9 @@ def test_repeated_password_has_low_entropy():
 
     assert result["details"]["entropy_per_char"] < 10
     assert not any("High entropy" in item for item in result["feedback"])
+
+
+def test_strong_password_can_reach_full_score():
+    result = analyze_password_strength("xK9!mP2@qZ#4nL5$")
+
+    assert result["score"] == 100
