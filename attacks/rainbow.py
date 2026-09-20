@@ -38,6 +38,13 @@ class RainbowAttack:
     def candidate_count(self) -> int:
         if not self.rainbow_table_path:
             return 0
+        try:
+            with open(self.rainbow_table_path, "r", encoding="utf-8") as f:
+                table = json.load(f)
+            if isinstance(table, dict):
+                return len(table)
+        except (json.JSONDecodeError, OSError):
+            pass
         with open(self.rainbow_table_path, "r", encoding="utf-8", errors="ignore") as f:
             return sum(1 for _ in f)
 
