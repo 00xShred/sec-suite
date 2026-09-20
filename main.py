@@ -72,6 +72,15 @@ def _build_attack(args):
 def password_cracker_mode(args):
     timestamp = datetime.now(timezone.utc).isoformat()
 
+    if not any([
+        args.target_hash,
+        getattr(args, "target_file", None),
+        args.test_password,
+        getattr(args, "count", False),
+    ]):
+        print("[!] Provide --target-hash, --target-file, --test-password, or --count")
+        return None
+
     if args.attack_mode == "rainbow" and not args.rainbow_table and not args.test_password:
         print("[!] --rainbow-table is required when using -m rainbow")
         return None
