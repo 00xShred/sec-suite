@@ -109,6 +109,7 @@ def password_cracker_mode(args):
             return None
 
         print(f"[*] Multi-hash mode: {len(hashes)} hashes loaded")
+        attacks = {}
         results = []
         for h in hashes:
             ht = args.hash_type or identify_hash_type(h)
@@ -116,12 +117,14 @@ def password_cracker_mode(args):
                 print(f"[!] Cannot detect hash type for: {h} — skipping")
                 results.append({"hash": h, "hash_type": None, "password": None, "cracked": False})
                 continue
-            original_ht = args.hash_type
-            args.hash_type = ht
-            try:
-                attack = _build_attack(args)
-            finally:
-                args.hash_type = original_ht
+            if ht not in attacks:
+                original_ht = args.hash_type
+                args.hash_type = ht
+                try:
+                    attacks[ht] = _build_attack(args)
+                finally:
+                    args.hash_type = original_ht
+            attack = attacks[ht]
             if attack is None:
                 return None
             found = attack.crack(h)
