@@ -1,0 +1,5 @@
+steps:
+  test:
+    image: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+    commands:
+      - uv run pytest
